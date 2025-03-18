@@ -6,6 +6,8 @@ import { register } from "../controllers/USER/Register/registerUserControllers";
 
 const CLIENT_ID: string = process.env.CLIENT_ID || "";
 const CLIENT_SECRET: string = process.env.CLIENT_SECRET || "";
+const GOOGLE_CALLBACK_REGISTER: string =
+  process.env.GOOGLE_CALLBACK_REGISTER || "";
 
 passport.use(
   "register",
@@ -13,7 +15,7 @@ passport.use(
     {
       clientID: CLIENT_ID,
       clientSecret: CLIENT_SECRET,
-      callbackURL: "http://localhost:5000/google/register/callback",
+      callbackURL: GOOGLE_CALLBACK_REGISTER,
     },
     async (accessToken: string, refreshToken: string, profile: any, done) => {
       try {

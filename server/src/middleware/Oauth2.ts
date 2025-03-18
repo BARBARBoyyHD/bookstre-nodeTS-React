@@ -3,10 +3,11 @@ dotenv.config();
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Login } from "../controllers/USER/Login/LoginUserControllers";
-import type {Users} from "../types/users"
+import type { Users } from "../types/users";
 
 const CLIENT_ID: string = process.env.CLIENT_ID || "";
 const CLIENT_SECRET: string = process.env.CLIENT_SECRET || "";
+const GOOGLE_CALLBACK_LOGIN: string = process.env.GOOGLE_CALLBACK_LOGIN || "";
 
 passport.use(
   "login",
@@ -14,11 +15,11 @@ passport.use(
     {
       clientID: CLIENT_ID,
       clientSecret: CLIENT_SECRET,
-      callbackURL: "http://localhost:5000/google/login/callback",
+      callbackURL: GOOGLE_CALLBACK_LOGIN,
       scope: ["profile", "email"],
       passReqToCallback: true, // ✅ Enable request access
     },
-    async (req, accessToken, refreshToken, profile:any, done) => {
+    async (req, accessToken, refreshToken, profile: any, done) => {
       try {
         const user = await Login(profile._json);
 
