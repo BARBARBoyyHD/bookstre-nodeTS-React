@@ -1,2 +1,42 @@
-/node_modules
+# Dependencies
+node_modules/
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Environment variables
 .env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+debug.log*
+output.log*
+
+# Temporary files
+*.tmp
+*.swp
+.DS_Store
+
+# Build files
+dist/
+build/
+.out/
+coverage/
+
+# Database files
+*.sqlite
+*.sqlite3
+*.db
+dump.sql
+
+# VSCode settings (optional)
+.vscode/
