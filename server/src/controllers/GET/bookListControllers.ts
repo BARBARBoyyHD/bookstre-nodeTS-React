@@ -36,6 +36,7 @@ export const getBooks = async (req: Request, res: Response) => {
       type: "success", // Indicating successful operation
       data: bookList, // Sending the fetched book list as response
     });
+    return;
 
   } catch (error) { // Catch any unexpected errors
     console.error("Server error:", error); // Log the error
