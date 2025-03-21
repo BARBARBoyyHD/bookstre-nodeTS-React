@@ -1,16 +1,25 @@
 import session from "express-session";
 import passport from "./src/middleware/Oauth2";
 import express, { Request, Response, NextFunction } from "express";
+import cors from "cors";
+
 import bookListRoutes from "./src/routes/GET/bookListRoutes";
 import Login from "./src/routes/USER/Login/UserLoginRoutes";
 import Register from "./src/routes/USER/Register/RegisterUserController";
 import PostBookRoutes from "./src/routes/POST/PostBookRoutes";
-import DeleteBookRoutes from "./src/routes/DELETE/DeleteBookRoutes"
-
+import DeleteBookRoutes from "./src/routes/DELETE/DeleteBookRoutes";
+import GetSingleBookRoutes from "./src/routes/SINGLE/GetSingleBookRoutes";
+import EditBookRoutes from "./src/routes/EDIT/EditBookRoutes";
 
 const app = express();
 
 const port: number = 5000;
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 app.use(
   session({
     secret: "CATS",
@@ -46,7 +55,23 @@ app.get(
         return res.status(500).json({ error: error.message });
       }
       if (!user) {
-        return res.status(401).json({ message: "Authentication failed" });
+        return res.send(`
+          <html>
+            <body style="text-align: center; font-family: Arial, sans-serif; padding: 50px;">
+              <h2>Authentication Failed</h2>
+              <p>You haven't registered yet.</p>
+              <p>We will redirect you to register page.</p>
+              <script>
+                setTimeout(() => {
+                  if (window.opener) {
+                    window.opener.postMessage({ type: "LOGIN_FAILED" }, "*");
+                  }
+                  window.close();
+                }, 3000);
+              </script>
+            </body>
+          </html>
+        `);
       }
 
       req.logIn(user, (err) => {
@@ -62,13 +87,32 @@ app.get(
         }
 
         res.cookie("accessToken", accessToken, {
-          httpOnly: true, // Prevent access via JavaScript
-          secure: process.env.NODE_ENV === "production", // HTTPS in production
-          sameSite: "strict", // CSRF protection
-          maxAge: 15 * 60 * 1000, // 15-minute expiry
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
+          maxAge: 15 * 60 * 1000,
         });
 
-        return res.json({ user, accessToken }); // ✅ Send both user and token
+        // ✅ Show "Thank you" message before closing the window
+        return res.send(`
+          <html>
+            <body style="text-align: center; font-family: Arial, sans-serif; padding: 50px;">
+              <h2>Login Successful!</h2>
+              <p>You can now close this window.</p>
+              <script>
+                setTimeout(() => {
+                  window.opener.postMessage(
+                    { type: "LOGIN_SUCCESS", user: ${JSON.stringify(
+                      user
+                    )}, accessToken: "${accessToken}" }, 
+                    "*"
+                  );
+                  window.close();
+                }, 2000);
+              </script>
+            </body>
+          </html>
+        `);
       });
     })(req, res, next);
   }
@@ -87,7 +131,6 @@ app.get("/google/register/callback", (req, res, next) => {
         return res.status(401).json({ message: "Authentication failed", info });
       }
 
-      // Sanitize user data before sending response
       const sanitizedUser = {
         user_id: user.sub,
         name: user.name,
@@ -95,14 +138,39 @@ app.get("/google/register/callback", (req, res, next) => {
         picture: user.picture,
       };
 
-      return res.json(sanitizedUser);
+      // ✅ Show "Thank you" message before closing the window
+      return res.send(`
+        <html>
+          <body style="text-align: center; font-family: Arial, sans-serif; padding: 50px;">
+            <h2>Thank you for registering!</h2>
+            <p>You can now close this window.</p>
+            <script>
+              setTimeout(() => {
+                window.opener.postMessage({type: "REGISTER_SUCCESS",user: ${JSON.stringify(
+                  sanitizedUser
+                )} }, "*");
+                window.close();
+              }, 2000);
+            </script>
+          </body>
+        </html>
+      `);
     }
   )(req, res, next);
 });
 
 app.get("/api/book/list", isLoggedIn, bookListRoutes);
 app.post("/api/post/book", PostBookRoutes);
-app.delete("/api/delete/book/:id",DeleteBookRoutes)
+app.delete("/api/delete/book/:id", DeleteBookRoutes);
+app.get("/api/single/book/:id", GetSingleBookRoutes);
+app.put("/api/edit/book/:id", EditBookRoutes);
+
+app.get("/api/auth/user", isLoggedIn, (req: Request, res: Response) => {
+  res.json({
+    message: "Authenticated",
+    user: req.user,
+  });
+});
 
 app.listen(port, () => {
   console.log(`http://localhost:${port}`);

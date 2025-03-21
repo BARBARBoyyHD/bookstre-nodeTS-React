@@ -1,47 +1,49 @@
 import supabase from "../../models/supabase";
 import { Request } from "express";
 import { CustomResponse } from "../../types/json";
+import type { Books } from "../../types/books";
 import { clearCache } from "../../utils/cacheHelper";
 
-export const deleteBook = async (
+export const editBook = async (
   req: Request,
   res: CustomResponse
 ): Promise<void> => {
   try {
     const id = Number(req.params.id);
-    if (isNaN(id)) {
-      res.status(400).json({ success: false, data: "Invalid book ID" });
-      return;
-    }
 
-    // Check if the book exists
-    const { data: findBook, error: findError } = await supabase
+    const { data: findId, error: findError } = await supabase
       .from("book-list")
-      .select("*")
+      .select()
       .eq("id", id)
       .single();
 
-    if (findError || !findBook) {
+    if (!findId || findError) {
       res.status(404).json({ success: false, data: "Book not found" });
       return;
     }
 
-    // Delete the book
-    const { data: deleteBook, error: deleteError } = await supabase
+    const { title, author, price, release }: Books = req.body;
+
+    const { data: editBook, error: editError } = await supabase
       .from("book-list")
-      .delete()
+      .update({
+        title,
+        author,
+        price,
+        release,
+      })
       .eq("id", id)
-      .select("*")
+      .select()
       .single();
 
-    if (deleteError) {
-      res.status(500).json({ success: false, data: deleteError.message });
+    if (editError) {
+      res.status(500).json({ success: false, data: editError.message });
       return;
     }
-
+    
     await clearCache(`book${id}`);
 
-    res.status(200).json({ success: true, data: deleteBook });
+    res.status(200).json({ success: true, data: editBook });
     return;
   } catch (error: any) {
     res.status(500).json({ success: false, data: error.message });
