@@ -160,10 +160,10 @@ app.get("/google/register/callback", (req, res, next) => {
 });
 
 app.get("/api/book/list", isLoggedIn, bookListRoutes);
-app.post("/api/post/book", PostBookRoutes);
-app.delete("/api/delete/book/:id", DeleteBookRoutes);
-app.get("/api/single/book/:id", GetSingleBookRoutes);
-app.put("/api/edit/book/:id", EditBookRoutes);
+app.post("/api/post/book", isLoggedIn, PostBookRoutes);
+app.delete("/api/delete/book/:id", isLoggedIn, DeleteBookRoutes);
+app.get("/api/single/book/:id", isLoggedIn, GetSingleBookRoutes);
+app.put("/api/edit/book/:id", isLoggedIn, EditBookRoutes);
 
 app.get("/api/auth/user", isLoggedIn, (req: Request, res: Response) => {
   res.json({

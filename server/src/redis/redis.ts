@@ -20,8 +20,22 @@ const connectRedis = async () => {
     console.error("Redis connection error:", error);
   }
 };
+const listAllKeys = async () => {
+  try {
+    if (!redisClient.isReady) {
+      console.warn("⚠️ Redis is not ready.");
+      return;
+    }
+    const keys = await redisClient.keys("*");
+    console.log("🗝️ Stored Keys in Redis:", keys.length > 0 ? keys : "No keys found.");
+  } catch (error) {
+    console.error("❌ Error fetching Redis keys:", error);
+  }
+};
 
-// Call the function
-connectRedis();
+// Call this function after connecting to Redis
+connectRedis().then(() => listAllKeys());
+
+
 
 export default redisClient;

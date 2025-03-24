@@ -9,18 +9,39 @@ export const getFromCache = async (key: string) => {
 
 // Function to store data in Redis cache with an expiration time
 export const saveToCache = async (
-  key: string, // The cache key used to store the data
-  data: any, // The actual data to be stored in the cache
-  duration: number = 10 // Expiration time in seconds (default: 10 seconds)
+  key: string,
+  value: any,
+  ttl: number = 10
 ) => {
-  if (redisClient.isReady) { // Check if Redis is ready before attempting to save
-    await redisClient.setEx(key, duration, JSON.stringify(data)); // Store data as a JSON string with an expiration time
+  try {
+    if (!redisClient.isReady) {
+      console.warn("⚠️ Redis is not ready.");
+      return;
+    }
+    await redisClient.set(key, JSON.stringify(value), { EX: ttl });
+    console.log(`✅ Cached: ${key} for ${ttl} seconds`);
+  } catch (error) {
+    console.error("❌ Error saving to Redis:", error);
   }
 };
 
 // Function to remove a specific key from Redis cache
 export const clearCache = async (key: string) => {
-  if (redisClient.isReady) { // Check if Redis is ready before attempting to delete
-    await redisClient.del(key); // Delete the cached data associated with the given key
+  try {
+    if (!redisClient.isReady) {
+      console.warn(
+        `Redis is not ready, skipping cache deletion for key: ${key}`
+      );
+      return;
+    }
+
+    const result = await redisClient.del(key); // Delete the cache
+    if (result) {
+      console.log(`Cache cleared for key: ${key}`);
+    } else {
+      console.warn(`No cache found for key: ${key}`);
+    }
+  } catch (error) {
+    console.error(`Error clearing cache for key: ${key}`, error);
   }
 };

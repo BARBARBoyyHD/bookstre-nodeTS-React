@@ -1,8 +1,8 @@
 import { Request } from "express";
-import { CustomResponse } from "../../types/json"; // Adjust path as needed
 import supabase from "../../models/supabase";
 import type { Books } from "../../types/books";
-import moment from "moment";
+import { CustomResponse } from "../../types/json"; // Adjust path as needed
+import { clearCache } from "../../utils/cacheHelper";
 
 export const post = async (
   req: Request,
@@ -25,6 +25,8 @@ export const post = async (
       .select("*")
       .single();
     if (error) throw error;
+
+    await clearCache("books");
 
     res.json({ success: true, data: data }).status(201);
     return;

@@ -29,7 +29,7 @@ export const getBooks = async (req: Request, res: Response) => {
     }
 
     // ✅ Store in cache for 5 seconds
-    await saveToCache(cacheKey, bookList, 5); // Save the fetched data to Redis cache with a 5-second expiration
+    await saveToCache(cacheKey, bookList, 60*5); // Save the fetched data to Redis cache with a 5-second expiration
 
     // ✅ Send response
     res.status(200).json({

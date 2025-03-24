@@ -42,7 +42,8 @@ export const editBook = async (
     }
     
     await clearCache(`book${id}`);
-
+    await clearCache(`books`);
+    
     res.status(200).json({ success: true, data: editBook });
     return;
   } catch (error: any) {

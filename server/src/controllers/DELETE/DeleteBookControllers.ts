@@ -15,36 +15,36 @@ export const deleteBook = async (
     }
 
     // Check if the book exists
-    const { data: findBook, error: findError } = await supabase
+    const { data: findBook } = await supabase
       .from("book-list")
-      .select("*")
+      .select("id") // Select only "id" for efficiency
       .eq("id", id)
       .single();
 
-    if (findError || !findBook) {
+    if (!findBook) {
       res.status(404).json({ success: false, data: "Book not found" });
       return;
     }
 
     // Delete the book
-    const { data: deleteBook, error: deleteError } = await supabase
+    const { error: deleteError } = await supabase
       .from("book-list")
       .delete()
-      .eq("id", id)
-      .select("*")
-      .single();
+      .eq("id", id);
 
     if (deleteError) {
-      res.status(500).json({ success: false, data: deleteError.message });
+      console.error("Delete Error:", deleteError);
+      res.status(500).json({ success: false, data: "Failed to delete book" });
       return;
     }
 
+    // Clear cache
     await clearCache(`book${id}`);
+    await clearCache("books");
 
-    res.status(200).json({ success: true, data: deleteBook });
-    return;
+    res.status(200).json({ success: true, data: `Book ID ${id} deleted` });
   } catch (error: any) {
-    res.status(500).json({ success: false, data: error.message });
-    return;
+    console.error("Unexpected Error:", error);
+    res.status(500).json({ success: false, data: "Internal Server Error" });
   }
 };
